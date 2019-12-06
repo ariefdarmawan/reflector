@@ -31,7 +31,7 @@ func From(obj interface{}) *reflector {
 	r := new(reflector)
 	r.ptr = v
 	r.v = v.Elem()
-	r.t = v.Type()
+	r.t = reflect.TypeOf(obj).Elem()
 	return r
 }
 
@@ -68,4 +68,42 @@ func (r *reflector) Flush() error {
 		r.ptr.Elem().Set(r.v)
 	}()
 	return err
+}
+
+func (r *reflector) FieldNames(tag string) ([]string, error) {
+	if r.err != nil {
+		return []string{}, r.err
+	}
+
+	fieldNum := r.t.NumField()
+	fields := make([]string, fieldNum)
+	//fmt.Println("num of fields:", fieldNum)
+
+	var err error
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				err = errors.New(r.(string))
+			}
+		}()
+
+		fieldIdx := 0
+		for {
+			f := r.t.Field(fieldIdx)
+			fn := f.Name
+			if tag != "" {
+				if tn := f.Tag.Get(tag); tn != "" {
+					fn = tn
+				}
+			}
+			fields[fieldIdx] = fn
+			//fmt.Println(fieldIdx, fn)
+
+			fieldIdx++
+			if fieldIdx >= fieldNum {
+				break
+			}
+		}
+	}()
+	return fields, err
 }

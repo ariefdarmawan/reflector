@@ -15,10 +15,10 @@ type childObj struct {
 }
 
 type obj struct {
-	ID   string
+	ID   string `name:"_id"`
 	Name string
 	Int  int
-	Dec  float64
+	Dec  float64 `name:"decimal"`
 	Date time.Time
 
 	Children []*childObj
@@ -58,5 +58,20 @@ func TestNegative(t *testing.T) {
 		data := obj{}
 		err := reflector.From(data).Set("ID", "obj1").Flush()
 		cv.So(err, cv.ShouldNotBeNil)
+	})
+}
+
+func TestName(t *testing.T) {
+	cv.Convey("get actual name", t, func() {
+		data := obj{}
+		names, err := reflector.From(&data).FieldNames("")
+		cv.So(err, cv.ShouldBeNil)
+		cv.So(names, cv.ShouldResemble, []string{"ID", "Name", "Int", "Dec", "Date", "Children"})
+
+		cv.Convey("get masked names", func() {
+			names, err := reflector.From(&data).FieldNames("name")
+			cv.So(err, cv.ShouldBeNil)
+			cv.So(names, cv.ShouldResemble, []string{"_id", "Name", "Int", "decimal", "Date", "Children"})
+		})
 	})
 }
