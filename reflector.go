@@ -35,6 +35,11 @@ func From(obj interface{}) *reflector {
 	return r
 }
 
+func (r *reflector) Get(name string) (interface{}, error) {
+	fv := r.v.FieldByName(name)
+	return fv.Interface(), nil
+}
+
 func (r *reflector) Set(name string, value interface{}) *reflector {
 	if r.err != nil {
 		return r

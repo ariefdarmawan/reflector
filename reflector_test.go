@@ -48,6 +48,12 @@ func TestReflector(t *testing.T) {
 				err = reflector.From(data.Children[0]).Set("Values", []int{1, 2, 3}).Flush()
 				cv.So(err, cv.ShouldBeNil)
 				cv.So(data.Children[0].Values[2], cv.ShouldEqual, 3)
+
+				cv.Convey("get", func() {
+					name, err := reflector.From(data).Get("Name")
+					cv.So(err, cv.ShouldBeNil)
+					cv.So(name, cv.ShouldEqual, data.Name)
+				})
 			})
 		})
 	})
