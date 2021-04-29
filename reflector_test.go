@@ -1,10 +1,12 @@
 package reflector_test
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/ariefdarmawan/reflector"
+	"github.com/eaciit/toolkit"
 
 	cv "github.com/smartystreets/goconvey/convey"
 )
@@ -79,5 +81,143 @@ func TestName(t *testing.T) {
 			cv.So(err, cv.ShouldBeNil)
 			cv.So(names, cv.ShouldResemble, []string{"_id", "Name", "Int", "decimal", "Date", "Children"})
 		})
+	})
+}
+
+type testObj struct {
+	ID    string
+	Name  string
+	Value int
+	Dt    time.Time
+}
+
+func TestAssignVar(t *testing.T) {
+	cv.Convey("Assign Var", t, func() {
+		source := testObj{"ID", "Name", 100, time.Now()}
+
+		cv.Convey("Same Type Ptr", func() {
+			dest := new(testObj)
+			e := reflector.AssignValue(reflect.ValueOf(&source), reflect.ValueOf(dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(dest, cv.ShouldResemble, &source)
+		})
+
+		cv.Convey("Same Type Value", func() {
+			dest := new(testObj)
+			e := reflector.AssignValue(reflect.ValueOf(source), reflect.ValueOf(dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(dest, cv.ShouldResemble, &source)
+		})
+
+		cv.Convey("Same Type M", func() {
+			dest := toolkit.M{}
+			e := reflector.AssignValue(reflect.ValueOf(source), reflect.ValueOf(&dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(toolkit.ToInt(dest["Value"], toolkit.RoundingAuto), cv.ShouldResemble, source.Value)
+		})
+
+		cv.Convey("Array", func() {
+			sources := []testObj{
+				{"ID0", "Name 0", 100, time.Now()},
+				{"ID0", "Name 0", 100, time.Now()},
+			}
+			dest := []toolkit.M{}
+			e := reflector.AssignValue(reflect.ValueOf(sources), reflect.ValueOf(&dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(len(sources), cv.ShouldEqual, len(dest))
+			cv.So(toolkit.ToInt(dest[0]["Value"], toolkit.RoundingAuto), cv.ShouldResemble, sources[0].Value)
+		})
+
+		cv.Convey("Diff type with some same field name", func() {
+			dest := struct {
+				ID   string
+				Name string
+			}{}
+			e := reflector.AssignValue(reflect.ValueOf(source), reflect.ValueOf(&dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(dest.Name, cv.ShouldResemble, source.Name)
+		})
+
+		cv.Convey("Negative", func() {
+			dest := struct {
+				ID   int
+				Name string
+			}{}
+			e := reflector.AssignValue(reflect.ValueOf(source), reflect.ValueOf(&dest))
+			cv.So(e, cv.ShouldNotBeNil)
+		})
+	})
+}
+
+func TestAssignSlice(t *testing.T) {
+	cv.Convey("assing slice", t, func() {
+		makeDest := func() []testObj {
+			return []testObj{
+				{"ID01", "Name01", 100, time.Now()},
+				{"ID02", "Name02", 200, time.Now().Add(1 * time.Minute)},
+				{"ID03", "Name03", 300, time.Now().Add(2 * time.Minute)},
+			}
+		}
+
+		makeDestPtr := func() []*testObj {
+			return []*testObj{
+				{"ID01", "Name01", 100, time.Now()},
+				{"ID02", "Name02", 200, time.Now().Add(1 * time.Minute)},
+				{"ID03", "Name03", 300, time.Now().Add(2 * time.Minute)},
+			}
+		}
+
+		cv.Convey("copy to same type with ptr source", func() {
+			dest := makeDest()
+			e := reflector.AssignSliceItem(reflect.ValueOf(&testObj{"ID04", "Name04", 400, time.Now()}), 3, reflect.ValueOf(&dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(len(dest), cv.ShouldEqual, 4)
+			cv.So(dest[0].ID, cv.ShouldEqual, "ID01")
+			cv.So(dest[3].ID, cv.ShouldEqual, "ID04")
+		})
+
+		cv.Convey("copy to same type with value source", func() {
+			dest := makeDest()
+			e := reflector.AssignSliceItem(reflect.ValueOf(testObj{"ID04", "Name04", 400, time.Now()}), 3, reflect.ValueOf(&dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(len(dest), cv.ShouldEqual, 4)
+			cv.So(dest[0].ID, cv.ShouldEqual, "ID01")
+			cv.So(dest[3].ID, cv.ShouldEqual, "ID04")
+		})
+
+		cv.Convey("copy to same type in ptr with ptr source", func() {
+			dest := makeDestPtr()
+			e := reflector.AssignSliceItem(reflect.ValueOf(&testObj{"ID04", "Name04", 400, time.Now()}), 3, reflect.ValueOf(&dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(len(dest), cv.ShouldEqual, 4)
+			cv.So(dest[0].ID, cv.ShouldEqual, "ID01")
+			cv.So(dest[3].ID, cv.ShouldEqual, "ID04")
+		})
+
+		cv.Convey("copy to same type in ptr with value source", func() {
+			dest := makeDestPtr()
+			e := reflector.AssignSliceItem(reflect.ValueOf(testObj{"ID04", "Name04", 400, time.Now()}), 3, reflect.ValueOf(&dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(len(dest), cv.ShouldEqual, 4)
+			cv.So(dest[0].ID, cv.ShouldEqual, "ID01")
+			cv.So(dest[3].ID, cv.ShouldEqual, "ID04")
+		})
+
+		cv.Convey("copy to []M with ptr source", func() {
+			dest := []toolkit.M{}
+			e := reflector.AssignSliceItem(reflect.ValueOf(&testObj{"ID04", "Name04", 400, time.Now()}), 0, reflect.ValueOf(&dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(len(dest), cv.ShouldEqual, 1)
+			cv.So(dest[0].GetString("ID"), cv.ShouldEqual, "ID04")
+		})
+
+		cv.Convey("copy to []*M with ptr source", func() {
+			dest := []*toolkit.M{}
+			e := reflector.AssignSliceItem(reflect.ValueOf(testObj{"ID04", "Name04", 400, time.Now()}), 0, reflect.ValueOf(&dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(len(dest), cv.ShouldEqual, 1)
+			cv.So(dest[0].GetString("ID"), cv.ShouldEqual, "ID04")
+		})
+
 	})
 }

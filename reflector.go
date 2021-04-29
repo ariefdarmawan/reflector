@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-type reflector struct {
+type Reflector struct {
 	ptr reflect.Value
 	v   reflect.Value
 	t   reflect.Type
@@ -13,34 +13,34 @@ type reflector struct {
 	err error
 }
 
-func (r *reflector) setError(msg string) *reflector {
+func (r *Reflector) setError(msg string) *Reflector {
 	r.err = errors.New(msg)
 	return r
 }
 
-func From(obj interface{}) *reflector {
+func From(obj interface{}) *Reflector {
 	v := reflect.ValueOf(obj)
 	if v.Kind() != reflect.Ptr {
-		return new(reflector).setError("source object should be pointer of struct")
+		return new(Reflector).setError("source object should be pointer of struct")
 	}
 
 	if v.Elem().Kind() != reflect.Struct {
-		return new(reflector).setError("source object should be pointer of struct")
+		return new(Reflector).setError("source object should be pointer of struct")
 	}
 
-	r := new(reflector)
+	r := new(Reflector)
 	r.ptr = v
 	r.v = v.Elem()
 	r.t = reflect.TypeOf(obj).Elem()
 	return r
 }
 
-func (r *reflector) Get(name string) (interface{}, error) {
+func (r *Reflector) Get(name string) (interface{}, error) {
 	fv := r.v.FieldByName(name)
 	return fv.Interface(), nil
 }
 
-func (r *reflector) Set(name string, value interface{}) *reflector {
+func (r *Reflector) Set(name string, value interface{}) *Reflector {
 	if r.err != nil {
 		return r
 	}
@@ -57,7 +57,7 @@ func (r *reflector) Set(name string, value interface{}) *reflector {
 	return r
 }
 
-func (r *reflector) Flush() error {
+func (r *Reflector) Flush() error {
 	if r.err != nil {
 		return r.err
 	}
@@ -75,7 +75,7 @@ func (r *reflector) Flush() error {
 	return err
 }
 
-func (r *reflector) FieldNames(tag string) ([]string, error) {
+func (r *Reflector) FieldNames(tag string) ([]string, error) {
 	if r.err != nil {
 		return []string{}, r.err
 	}
