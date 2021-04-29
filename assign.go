@@ -59,7 +59,7 @@ func AssignSliceItem(data reflect.Value, index int, dest reflect.Value) error {
 	}
 
 	var (
-		newDest      = dest
+		newDest      = dest.Elem()
 		copyIsNeeded = false
 	)
 

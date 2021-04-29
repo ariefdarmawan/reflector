@@ -203,6 +203,15 @@ func TestAssignSlice(t *testing.T) {
 			cv.So(dest[3].ID, cv.ShouldEqual, "ID04")
 		})
 
+		cv.Convey("copy to same type in ptr with value source on existing index", func() {
+			dest := makeDestPtr()
+			e := reflector.AssignSliceItem(reflect.ValueOf(testObj{"ID04", "Name04", 400, time.Now()}), 2, reflect.ValueOf(&dest))
+			cv.So(e, cv.ShouldBeNil)
+			cv.So(len(dest), cv.ShouldEqual, 3)
+			cv.So(dest[0].ID, cv.ShouldEqual, "ID01")
+			cv.So(dest[2].ID, cv.ShouldEqual, "ID04")
+		})
+
 		cv.Convey("copy to []M with ptr source", func() {
 			dest := []toolkit.M{}
 			e := reflector.AssignSliceItem(reflect.ValueOf(&testObj{"ID04", "Name04", 400, time.Now()}), 0, reflect.ValueOf(&dest))
