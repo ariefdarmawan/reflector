@@ -18,6 +18,10 @@ func (r *Reflector) setError(msg string) *Reflector {
 	return r
 }
 
+func (r *Reflector) Error() error {
+	return r.err
+}
+
 func From(obj interface{}) *Reflector {
 	v := reflect.ValueOf(obj)
 	if v.Kind() != reflect.Ptr {
@@ -37,6 +41,9 @@ func From(obj interface{}) *Reflector {
 
 func (r *Reflector) Get(name string) (interface{}, error) {
 	fv := r.v.FieldByName(name)
+	if !fv.IsValid() {
+		return nil, errors.New("invalidField: " + name)
+	}
 	return fv.Interface(), nil
 }
 
