@@ -3,6 +3,7 @@ package reflector
 import (
 	"errors"
 	"reflect"
+	"strings"
 )
 
 type Reflector struct {
@@ -40,14 +41,35 @@ func From(obj interface{}) *Reflector {
 }
 
 func (r *Reflector) Get(name string) (interface{}, error) {
-	fv := r.v.FieldByName(name)
+	return r.getValue(r.v, name)
+}
+
+func (r *Reflector) getValue(rv reflect.Value, name string) (interface{}, error) {
+	names := strings.Split(name, ".")
+	fv := rv.FieldByName(names[0])
 	if !fv.IsValid() {
 		return nil, errors.New("invalidField: " + name)
 	}
+
+	if len(names) > 1 {
+		if fv.Kind() == reflect.Ptr {
+			if fv.IsNil() {
+				fv = reflect.New(fv.Type().Elem())
+			}
+			return r.getValue(fv.Elem(), strings.Join(names[1:], "."))
+		} else {
+			return r.getValue(fv, strings.Join(names[1:], "."))
+		}
+	}
+
 	return fv.Interface(), nil
 }
 
 func (r *Reflector) Set(name string, value interface{}) *Reflector {
+	return r.setValue(r.v, name, value)
+}
+
+func (r *Reflector) setValue(rv reflect.Value, name string, value interface{}) *Reflector {
 	if r.err != nil {
 		return r
 	}
@@ -55,12 +77,29 @@ func (r *Reflector) Set(name string, value interface{}) *Reflector {
 	func() {
 		defer func() {
 			if rec := recover(); rec != nil {
+				// surpress error
 			}
 		}()
 
-		v := r.v.FieldByName(name)
+		names := strings.Split(name, ".")
+		fieldName := names[0]
+		v := rv.FieldByName(fieldName)
+		if len(names) > 1 {
+			if v.Kind() == reflect.Ptr {
+				if v.IsNil() {
+					newPtr := reflect.New(v.Type().Elem())
+					v.Set(newPtr)
+				}
+				r.setValue(v.Elem(), strings.Join(names[1:], "."), value)
+			} else {
+				r.setValue(v, strings.Join(names[1:], "."), value)
+			}
+			return
+		}
+
 		v.Set(reflect.ValueOf(value))
 	}()
+
 	return r
 }
 

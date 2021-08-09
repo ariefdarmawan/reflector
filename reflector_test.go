@@ -230,3 +230,63 @@ func TestAssignSlice(t *testing.T) {
 
 	})
 }
+
+func TestStructChild(t *testing.T) {
+	type person struct {
+		Name       string
+		Salutation string
+	}
+
+	type e1 struct {
+		Person person
+		Role   string
+	}
+
+	type e2 struct {
+		Person *person
+		Role   string
+	}
+
+	cv.Convey("no ptr child", t, func() {
+		p := &person{"Arief D", "Mr"}
+		empl := new(e1)
+		empl.Person = *p
+		empl.Role = "Founder"
+
+		refl := reflector.From(empl)
+		refl.Set("Person.Salutation", "Tn.")
+		refl.Flush()
+		cv.So(empl.Person.Salutation, cv.ShouldEqual, "Tn.")
+
+		get, _ := refl.Get("Person.Salutation")
+		cv.So(get, cv.ShouldEqual, "Tn.")
+
+		cv.Convey("ptr child", func() {
+			p := &person{"Arief D", "Mr"}
+			empl := new(e2)
+			empl.Person = p
+			empl.Role = "Founder"
+
+			refl := reflector.From(empl)
+			refl.Set("Person.Salutation", "Tn.")
+			refl.Flush()
+			cv.So(empl.Person.Salutation, cv.ShouldEqual, "Tn.")
+
+			get, _ := refl.Get("Person.Salutation")
+			cv.So(get, cv.ShouldEqual, "Tn.")
+
+			cv.Convey("ptr child with null value", func() {
+				empl := new(e2)
+				empl.Role = "Founder"
+
+				refl := reflector.From(empl)
+				refl.Set("Person.Salutation", "Tn.")
+				refl.Flush()
+				cv.So(empl.Person.Salutation, cv.ShouldEqual, "Tn.")
+
+				get, _ := refl.Get("Person.Salutation")
+				cv.So(get, cv.ShouldEqual, "Tn.")
+			})
+		})
+	})
+}
