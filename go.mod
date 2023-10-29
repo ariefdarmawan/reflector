@@ -3,6 +3,7 @@ module github.com/ariefdarmawan/reflector
 go 1.19
 
 require (
+	github.com/ariefdarmawan/serde v0.1.1
 	github.com/sebarcode/codekit v0.1.5
 	github.com/smartystreets/goconvey v1.6.4
 )

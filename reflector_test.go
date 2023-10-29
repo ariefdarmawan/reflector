@@ -111,7 +111,9 @@ func TestAssignVar(t *testing.T) {
 
 		cv.Convey("Same Type M", func() {
 			dest := codekit.M{}
-			e := reflector.AssignValue(reflect.ValueOf(source), reflect.ValueOf(&dest))
+			rs := reflect.ValueOf(source)
+			rd := reflect.ValueOf(&dest)
+			e := reflector.AssignValue(rs, rd)
 			cv.So(e, cv.ShouldBeNil)
 			cv.So(codekit.ToInt(dest["Value"], codekit.RoundingAuto), cv.ShouldResemble, source.Value)
 		})
@@ -121,8 +123,10 @@ func TestAssignVar(t *testing.T) {
 				{"ID0", "Name 0", 100, time.Now()},
 				{"ID0", "Name 0", 100, time.Now()},
 			}
+			rs := reflect.ValueOf(sources)
 			dest := []codekit.M{}
-			e := reflector.AssignValue(reflect.ValueOf(sources), reflect.ValueOf(&dest))
+			rd := reflect.ValueOf(&dest)
+			e := reflector.AssignValue(rs, rd)
 			cv.So(e, cv.ShouldBeNil)
 			cv.So(len(sources), cv.ShouldEqual, len(dest))
 			cv.So(codekit.ToInt(dest[0]["Value"], codekit.RoundingAuto), cv.ShouldResemble, sources[0].Value)
@@ -143,7 +147,7 @@ func TestAssignVar(t *testing.T) {
 				ID   int
 				Name string
 			}{}
-			e := reflector.AssignValue(reflect.ValueOf(source), reflect.ValueOf(&dest))
+			e := reflector.AssignValue(reflect.ValueOf(source), reflect.ValueOf(dest))
 			cv.So(e, cv.ShouldNotBeNil)
 		})
 	})
@@ -214,7 +218,9 @@ func TestAssignSlice(t *testing.T) {
 
 		cv.Convey("copy to []M with ptr source", func() {
 			dest := []codekit.M{}
-			e := reflector.AssignSliceItem(reflect.ValueOf(&testObj{"ID04", "Name04", 400, time.Now()}), 0, reflect.ValueOf(&dest))
+			rs := reflect.ValueOf(&testObj{"ID04", "Name04", 400, time.Now()})
+			rd := reflect.ValueOf(&dest)
+			e := reflector.AssignSliceItem(rs, 0, rd)
 			cv.So(e, cv.ShouldBeNil)
 			cv.So(len(dest), cv.ShouldEqual, 1)
 			cv.So(dest[0].GetString("ID"), cv.ShouldEqual, "ID04")

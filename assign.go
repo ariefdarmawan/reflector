@@ -4,7 +4,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/sebarcode/codekit"
+	"github.com/ariefdarmawan/serde"
 )
 
 func AssignValue(source reflect.Value, dest reflect.Value) error {
@@ -19,8 +19,22 @@ func AssignValue(source reflect.Value, dest reflect.Value) error {
 	if dest.Elem().Type() == source.Type() {
 		dest.Elem().Set(source)
 	} else {
-		destBuffer := reflect.New(dest.Type().Elem()).Interface()
-		if e := codekit.Serde(source.Interface(), destBuffer, ""); e != nil {
+		var destBuffer interface{}
+		destElemKind := dest.Elem().Kind()
+		switch destElemKind {
+		case reflect.Struct:
+			destBuffer = reflect.New(dest.Type().Elem()).Interface()
+
+		case reflect.Map:
+			destBuffer = serde.CreatePtrFromType(dest.Type().Elem()).Interface()
+
+		case reflect.Slice:
+			rSlice := reflect.MakeSlice(dest.Type().Elem(), 0, 0)
+			rBuffer := reflect.New(dest.Type().Elem())
+			rBuffer.Elem().Set(rSlice)
+			destBuffer = rBuffer.Interface()
+		}
+		if e := serde.Serde(source.Interface(), destBuffer); e != nil {
 			return errors.New("fail to serializing source. " + e.Error())
 		}
 		//fmt.Println("dbf type is ", reflect.ValueOf(destBuffer).Type().String())
@@ -51,8 +65,8 @@ func AssignSliceItem(data reflect.Value, index int, dest reflect.Value) error {
 	if destItemTypeVal == data.Type() {
 		item = data
 	} else {
-		destBuffer := reflect.New(destItemTypeVal).Interface()
-		if e := codekit.Serde(data.Interface(), destBuffer, ""); e != nil {
+		destBuffer := serde.CreatePtrFromType(destItemTypeVal).Interface()
+		if e := serde.Serde(data.Interface(), destBuffer); e != nil {
 			return errors.New("fail to serializing source. " + e.Error())
 		}
 		item = reflect.ValueOf(destBuffer).Elem()
