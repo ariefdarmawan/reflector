@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/ariefdarmawan/reflector"
-	"github.com/eaciit/toolkit"
+	"github.com/sebarcode/codekit"
 
 	cv "github.com/smartystreets/goconvey/convey"
 )
@@ -110,10 +110,10 @@ func TestAssignVar(t *testing.T) {
 		})
 
 		cv.Convey("Same Type M", func() {
-			dest := toolkit.M{}
+			dest := codekit.M{}
 			e := reflector.AssignValue(reflect.ValueOf(source), reflect.ValueOf(&dest))
 			cv.So(e, cv.ShouldBeNil)
-			cv.So(toolkit.ToInt(dest["Value"], toolkit.RoundingAuto), cv.ShouldResemble, source.Value)
+			cv.So(codekit.ToInt(dest["Value"], codekit.RoundingAuto), cv.ShouldResemble, source.Value)
 		})
 
 		cv.Convey("Array", func() {
@@ -121,11 +121,11 @@ func TestAssignVar(t *testing.T) {
 				{"ID0", "Name 0", 100, time.Now()},
 				{"ID0", "Name 0", 100, time.Now()},
 			}
-			dest := []toolkit.M{}
+			dest := []codekit.M{}
 			e := reflector.AssignValue(reflect.ValueOf(sources), reflect.ValueOf(&dest))
 			cv.So(e, cv.ShouldBeNil)
 			cv.So(len(sources), cv.ShouldEqual, len(dest))
-			cv.So(toolkit.ToInt(dest[0]["Value"], toolkit.RoundingAuto), cv.ShouldResemble, sources[0].Value)
+			cv.So(codekit.ToInt(dest[0]["Value"], codekit.RoundingAuto), cv.ShouldResemble, sources[0].Value)
 		})
 
 		cv.Convey("Diff type with some same field name", func() {
@@ -213,7 +213,7 @@ func TestAssignSlice(t *testing.T) {
 		})
 
 		cv.Convey("copy to []M with ptr source", func() {
-			dest := []toolkit.M{}
+			dest := []codekit.M{}
 			e := reflector.AssignSliceItem(reflect.ValueOf(&testObj{"ID04", "Name04", 400, time.Now()}), 0, reflect.ValueOf(&dest))
 			cv.So(e, cv.ShouldBeNil)
 			cv.So(len(dest), cv.ShouldEqual, 1)
@@ -221,7 +221,7 @@ func TestAssignSlice(t *testing.T) {
 		})
 
 		cv.Convey("copy to []*M with ptr source", func() {
-			dest := []*toolkit.M{}
+			dest := []*codekit.M{}
 			e := reflector.AssignSliceItem(reflect.ValueOf(testObj{"ID04", "Name04", 400, time.Now()}), 0, reflect.ValueOf(&dest))
 			cv.So(e, cv.ShouldBeNil)
 			cv.So(len(dest), cv.ShouldEqual, 1)

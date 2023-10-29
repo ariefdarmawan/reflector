@@ -4,7 +4,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/eaciit/toolkit"
+	"github.com/sebarcode/codekit"
 )
 
 func AssignValue(source reflect.Value, dest reflect.Value) error {
@@ -20,7 +20,7 @@ func AssignValue(source reflect.Value, dest reflect.Value) error {
 		dest.Elem().Set(source)
 	} else {
 		destBuffer := reflect.New(dest.Type().Elem()).Interface()
-		if e := toolkit.Serde(source.Interface(), destBuffer, ""); e != nil {
+		if e := codekit.Serde(source.Interface(), destBuffer, ""); e != nil {
 			return errors.New("fail to serializing source. " + e.Error())
 		}
 		//fmt.Println("dbf type is ", reflect.ValueOf(destBuffer).Type().String())
@@ -52,7 +52,7 @@ func AssignSliceItem(data reflect.Value, index int, dest reflect.Value) error {
 		item = data
 	} else {
 		destBuffer := reflect.New(destItemTypeVal).Interface()
-		if e := toolkit.Serde(data.Interface(), destBuffer, ""); e != nil {
+		if e := codekit.Serde(data.Interface(), destBuffer, ""); e != nil {
 			return errors.New("fail to serializing source. " + e.Error())
 		}
 		item = reflect.ValueOf(destBuffer).Elem()
@@ -84,7 +84,7 @@ func AssignSliceItem(data reflect.Value, index int, dest reflect.Value) error {
 		newDest.Index(index).Set(item)
 	}
 
-	//fmt.Println("Data:", toolkit.JsonString(newDest.Interface()))
+	//fmt.Println("Data:", codekit.JsonString(newDest.Interface()))
 	if copyIsNeeded {
 		dest.Elem().Set(newDest)
 	}
