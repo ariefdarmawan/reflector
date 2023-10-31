@@ -27,9 +27,9 @@ func CopyAttributes[T any](source interface{}, dest T, excludeFieldNames ...stri
 		}
 		sourceType := rs.Type()
 		destType := rde.Type()
-		destFieldNames := make([]string, rde.NumField())
 		sourceFieldCount := rs.NumField()
-		destFieldCount := rs.NumField()
+		destFieldCount := rde.NumField()
+		destFieldNames := make([]string, destFieldCount)
 		for i := 0; i < destFieldCount; i++ {
 			destFieldNames[i] = destType.Field(i).Name
 		}
@@ -39,7 +39,7 @@ func CopyAttributes[T any](source interface{}, dest T, excludeFieldNames ...stri
 				rde.FieldByName(fieldName).Set(rs.Field(i))
 			}
 		}
-		rd.Set(rde)
+		rd.Elem().Set(rde)
 	}()
 	return dest, err
 }
@@ -64,9 +64,9 @@ func CopyAttributeByNames[T any](source interface{}, dest T, copiedFieldNames ..
 		}
 		sourceType := rs.Type()
 		destType := rde.Type()
-		destFieldNames := make([]string, rde.NumField())
 		sourceFieldCount := rs.NumField()
-		destFieldCount := rs.NumField()
+		destFieldCount := rde.NumField()
+		destFieldNames := make([]string, destFieldCount)
 		for i := 0; i < destFieldCount; i++ {
 			destFieldNames[i] = destType.Field(i).Name
 		}
@@ -76,7 +76,7 @@ func CopyAttributeByNames[T any](source interface{}, dest T, copiedFieldNames ..
 				rde.FieldByName(fieldName).Set(rs.Field(i))
 			}
 		}
-		rd.Set(rde)
+		rd.Elem().Set(rde)
 	}()
 	return dest, err
 }
