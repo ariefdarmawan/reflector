@@ -81,7 +81,7 @@ func TestCopyFieldNegative(t *testing.T) {
 			Sub  float64
 		}{}
 
-		obj2, e := reflector.CopyAttributes(obj1, obj2, "ID")
+		_, e := reflector.CopyAttributes(obj1, obj2, "ID")
 		convey.Convey("validate", func() {
 			convey.So(e, convey.ShouldNotBeNil)
 		})
