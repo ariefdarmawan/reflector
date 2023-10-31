@@ -22,9 +22,11 @@ func CopyAttributes[T any](source interface{}, dest T, excludeFieldNames ...stri
 	}
 	var err error
 	func() {
-		if r := recover(); r != nil {
-			err = errors.New(r.(string))
-		}
+		defer func() {
+			if r := recover(); r != nil {
+				err = errors.New(r.(string))
+			}
+		}()
 		sourceType := rs.Type()
 		destType := rde.Type()
 		sourceFieldCount := rs.NumField()
@@ -59,9 +61,11 @@ func CopyAttributeByNames[T any](source interface{}, dest T, copiedFieldNames ..
 	}
 	var err error
 	func() {
-		if r := recover(); r != nil {
-			err = errors.New(r.(string))
-		}
+		defer func() {
+			if r := recover(); r != nil {
+				err = errors.New(r.(string))
+			}
+		}()
 		sourceType := rs.Type()
 		destType := rde.Type()
 		sourceFieldCount := rs.NumField()

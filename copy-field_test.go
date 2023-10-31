@@ -63,3 +63,27 @@ func TestCopyFieldByNames(t *testing.T) {
 		})
 	})
 }
+
+func TestCopyFieldNegative(t *testing.T) {
+	convey.Convey("copy", t, func() {
+		obj1 := &struct {
+			ID   string
+			Name string
+			F64  float64
+			Sub  struct {
+				Random string
+			}
+		}{"ID01", "Test Saja", 0.85, struct{ Random string }{"Random01"}}
+
+		obj2 := &struct {
+			ID   string
+			Name string
+			Sub  float64
+		}{}
+
+		obj2, e := reflector.CopyAttributes(obj1, obj2, "ID")
+		convey.Convey("validate", func() {
+			convey.So(e, convey.ShouldNotBeNil)
+		})
+	})
+}
