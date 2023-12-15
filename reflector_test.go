@@ -323,3 +323,30 @@ func TestCreateFromPtr(t *testing.T) {
 		})
 	})
 }
+
+func TestGetTo(t *testing.T) {
+	convey.Convey("get to", t, func() {
+		objSource := new(testObj)
+		objSource.ID = "create_from_ptr"
+		objSource.Name = "random name"
+		objSource.Dt = time.Now()
+
+		convey.Convey("positive ", func() {
+			rf := reflector.From(objSource)
+			name := ""
+			dt := time.Time{}
+
+			ename := rf.GetTo("Name", &name)
+			edt := rf.GetTo("Dt", &dt)
+			convey.So(ename, convey.ShouldBeNil)
+			convey.So(name, convey.ShouldEqual, objSource.Name)
+			convey.So(edt, convey.ShouldBeNil)
+			convey.So(dt, convey.ShouldEqual, objSource.Dt)
+
+			convey.Convey("negative", func() {
+				ename = rf.GetTo("Name", name)
+				convey.So(ename, convey.ShouldNotBeNil)
+			})
+		})
+	})
+}

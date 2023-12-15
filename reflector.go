@@ -2,6 +2,7 @@ package reflector
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -41,14 +42,40 @@ func From(obj interface{}) *Reflector {
 }
 
 func (r *Reflector) Get(name string) (interface{}, error) {
-	return r.getValue(r.v, name)
+	v, err := r.getValue(r.v, name)
+	if err != nil {
+		return nil, err
+	}
+	return v.Interface(), nil
 }
 
-func (r *Reflector) getValue(rv reflect.Value, name string) (interface{}, error) {
+func (r *Reflector) GetTo(name string, dest interface{}) error {
+	v, err := r.getValue(r.v, name)
+	if err != nil {
+		return err
+	}
+	dv := reflect.ValueOf(dest)
+	if dv.Kind() != reflect.Ptr {
+		return errors.New("dest should be a pointer")
+	}
+	func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic on GetTo: %s", r)
+		}
+		if v.Kind() == reflect.Ptr {
+			dv.Elem().Set(v.Elem())
+		} else {
+			dv.Elem().Set(v)
+		}
+	}()
+	return err
+}
+
+func (r *Reflector) getValue(rv reflect.Value, name string) (reflect.Value, error) {
 	names := strings.Split(name, ".")
 	fv := rv.FieldByName(names[0])
 	if !fv.IsValid() {
-		return nil, errors.New("invalidField: " + name)
+		return rv, errors.New("invalidField: " + name)
 	}
 
 	if len(names) > 1 {
@@ -62,7 +89,7 @@ func (r *Reflector) getValue(rv reflect.Value, name string) (interface{}, error)
 		}
 	}
 
-	return fv.Interface(), nil
+	return fv, nil
 }
 
 func (r *Reflector) Set(name string, value interface{}) *Reflector {
