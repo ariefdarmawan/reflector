@@ -2,6 +2,7 @@ package reflector
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 
 	"github.com/ariefdarmawan/serde"
@@ -104,4 +105,17 @@ func AssignSliceItem(data reflect.Value, index int, dest reflect.Value) error {
 	}
 
 	return nil
+}
+
+func CreateFromPtr[T any](ptr T, copyValue bool) (T, error) {
+	vt := reflect.TypeOf(ptr)
+	if vt.Kind() != reflect.Ptr {
+		return ptr, fmt.Errorf("parameter should be ptr")
+	}
+
+	nv := reflect.New(vt.Elem())
+	if copyValue {
+		nv.Elem().Set(reflect.ValueOf(ptr).Elem())
+	}
+	return nv.Interface().(T), nil
 }

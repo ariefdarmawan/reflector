@@ -8,6 +8,7 @@ import (
 	"github.com/ariefdarmawan/reflector"
 	"github.com/sebarcode/codekit"
 
+	"github.com/smartystreets/goconvey/convey"
 	cv "github.com/smartystreets/goconvey/convey"
 )
 
@@ -293,6 +294,32 @@ func TestStructChild(t *testing.T) {
 				get, _ := refl.Get("Person.Salutation")
 				cv.So(get, cv.ShouldEqual, "Tn.")
 			})
+		})
+	})
+}
+
+func TestCreateFromPtr(t *testing.T) {
+	convey.Convey("create from ptr", t, func() {
+		objSource := new(testObj)
+		objSource.ID = "create_from_ptr"
+		objSource.Name = "random name"
+
+		convey.Convey("copy", func() {
+			objCopy, err := reflector.CreateFromPtr(objSource, true)
+			convey.So(err, convey.ShouldBeNil)
+			convey.So(objCopy.Name, convey.ShouldEqual, objSource.Name)
+		})
+
+		convey.Convey("not copy", func() {
+			objNotCopy, err := reflector.CreateFromPtr(objSource, false)
+			convey.So(err, convey.ShouldBeNil)
+			convey.So(objNotCopy.Name, convey.ShouldEqual, "")
+		})
+
+		convey.Convey("not ptr", func() {
+			objNotPtr := testObj{}
+			_, err := reflector.CreateFromPtr(objNotPtr, false)
+			convey.So(err, convey.ShouldNotBeNil)
 		})
 	})
 }
