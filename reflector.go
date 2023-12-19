@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"runtime/debug"
 	"strings"
 )
 
@@ -59,10 +60,15 @@ func (r *Reflector) GetTo(name string, dest interface{}) error {
 		return errors.New("dest should be a pointer")
 	}
 	func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("panic on GetTo: %s", r)
-		}
+		defer func() {
+			if r := recover(); r != nil {
+				err = fmt.Errorf("panic on GetTo: %s, stack: %s", r, prettyStack(string(debug.Stack())))
+			}
+		}()
 		if v.Kind() == reflect.Ptr {
+			if v.IsNil() {
+				return
+			}
 			dv.Elem().Set(v.Elem())
 		} else {
 			dv.Elem().Set(v)
@@ -184,4 +190,15 @@ func (r *Reflector) FieldNames(tag string) ([]string, error) {
 		}
 	}()
 	return fields, err
+}
+
+func prettyStack(stack string) string {
+	stacks := strings.Split(stack, "\n")
+	filtereds := []string{}
+	for _, s := range stacks {
+		if strings.Contains(s, ".go:") {
+			filtereds = append(filtereds, strings.Trim(s, " \t\n"))
+		}
+	}
+	return strings.Join(filtereds, "\n")
 }
