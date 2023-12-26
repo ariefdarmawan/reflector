@@ -110,7 +110,7 @@ func (r *Reflector) setValue(rv reflect.Value, name string, value interface{}) *
 	func() {
 		defer func() {
 			if rec := recover(); rec != nil {
-				// surpress error
+				r.err = fmt.Errorf("%v", rec)
 			}
 		}()
 
